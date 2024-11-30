@@ -1,44 +1,39 @@
-TODO:
-- Add some features (e.g. error handling)/match config for the api.yml 
-- Write tests for the api
-- Test on another machine
-- Write out this README
-- Submit
+# Instructions for Running
+1. This is unlikely, but if migrations need to be made for any reason, run the following commands:
+- `python manage.py makemigrations receipt_processor`
+- `python manage.py migrate receipt_processor`
 
-MIGRATE:
-python manage.py makemigrations receipt_processor 
-python manage.py migrate receipt_processor 
+2. If you'd like, run the test suite:
+- `python manage.py test receipt_processor.tests`
 
-TEST:
-python manage.py test receipt_processor.tests
+3. Spin up and run the docker container by running:
+- `docker compose up -d`
+- NOTE: On a mac running on an ARM64 chip, you may have to run this instead: `docker-compose up -d`
 
-http://127.0.0.1:8000/receipts/process
-http://127.0.0.1:8000/receipts/<str:receipt_id>/points/
-
+4. Using software like [Postman](https://www.postman.com/) (or whatever you decide to use), you can manually test the endpoints at the following URLs:
+  - Process Receipts: http://localhost:8000/receipts/process
+  - Get Points: http://localhost:8000/receipts/{receipt_id}/points/
 
 
-RUN:
-docker compose up -d
+# Decisions
+- I decided to use Docker for this project, as it is the backend framework that I am most familiar with. On a more fundamental level, I'm very skilled in crafting smooth and efficient APIs for my clients and peers, and I'm positive these skills would translate well to working with Go at Fetch.
+- I created my own test suite to ensure that my code ran as specified in this README. In doing so, I discovered that my code did not work as intended, as I was only creating one Item object for repeat objects on a Receipt. Writing my own tests allowed me to catch something that may have led to poor marks on this challenge.
 
-on mac ARM64, you may have to run this instead:
-
-docker-compose up -d
-
-
-
+# Room for Improvement
+- Ideally, I would want to add better security and authentication. The permission_classes in views.py are far from ideal, and there are openly exposed secret keys in settings.py (which should be stored somewhere private). As this is just a coding challenge, I'm willing to let it slide. Though generally I err on the side of heightened caution with cybersecurity.
+- I implemented a Many-To-Many relationship between Items and Receipts using an intermediary model, ItemAssignmentToReceipt. This allowed me to freely store purchased items and assign them to different receipts. In reality, I would want a second opinion on this data design, as I know bad data design can turn into very bad tech debt down the road.
 
 # Receipt Processor
 
-Build a webservice that fulfils the documented API. The API is described below. A formal definition is provided 
-in the [api.yml](./api.yml) file. We will use the described API to test your solution.
+A web service that fulfills the documented API. The API is described below. A formal definition is provided 
+in the [api.yml](./api.yml) file.
 
-Provide any instructions required to run your application.
-
-Data does not need to persist when your application stops. It is sufficient to store information in memory. There are too many different database solutions, we will not be installing a database on our system when testing your application.
+Data is persisted in the `db.sqlite3` file. This can be accessed using the db.sqlite3 extension in VScode, or using software
+such as https://sqlitebrowser.org/
 
 ## Language Selection
 
-You can assume our engineers have Go and Docker installed to run your application. Go is our preferred language, but it is not a requirement for this exercise. If you are not using Go, include a Dockerized setup to run the code. You should also provide detailed instructions if your Docker file requires any additional configuration to run the application.
+As I am not using Go, I have included a Dockerized setup to run the code. See the instructions above for spinning up and running the Docker container for this project.
 
 ## Submitting Your Solution
 
@@ -181,6 +176,7 @@ Breakdown:
 ---
 
 # FAQ
+## (From the original publication of this repository, left in case the reviewer needs this info.)
 
 ### How will this exercise be evaluated?
 An engineer will review the code you submit. At a minimum they must be able to run the service and the service must provide the expected results. You
