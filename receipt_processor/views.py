@@ -2,7 +2,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from receipt_processor.models import Item, ItemAssignmentToReceipt, Receipt
+from receipt_processor.models import Item, ItemAssignmentToReceipt, Receipt, ReceiptPoints
 
 from datetime import datetime
 import json
@@ -10,7 +10,7 @@ import json
 
 class ReceiptView(APIView):
     """
-    Endpoint for getting attempt storing the data for a receipt.
+    Endpoint for storing the data for a receipt.
 
     Supports:
         HTTP POST:
@@ -60,8 +60,20 @@ class ReceiptView(APIView):
 
 
 class ReceiptPointsView(APIView):
+    """
+    Endpoint for getting or generating the points for a receipt.
 
-    def get(self):
+    Supports:
+        HTTP GET:
+            Get or generate the points for a Receipt
+    """
+
+    # NOTE: I have to make this 
+    permission_classes = (AllowAny,)
+    http_method_names = ['post', 'head']
+    def get(self, receipt_id):
         # If a receipt exists for the ID that has the point value, return the points.
         # Else, generate the point value and return it.
-        return Response()
+        receipt_points, _ = ReceiptPoints.objects.get_or_create(receipt=receipt_id)
+        points = receipt_points.points
+        return Response(data={'points': points}, status=200)

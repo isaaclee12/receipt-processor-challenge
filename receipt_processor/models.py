@@ -14,6 +14,10 @@ class Receipt(models.Model):
     # create a join table with foreign keys to Receipt and Item
     items = models.ManyToManyField(Item, through='ItemAssignmentToReceipt')
 
+class ReceiptPoints(models.Model):
+    receipt = models.ForeignKey(Receipt, on_delete=models.CASCADE)
+    points = models.IntegerField()
+
 class ItemAssignmentToReceipt(models.Model):
     receipt = models.ForeignKey(Receipt, on_delete=models.CASCADE)
     item = models.ForeignKey(Item, on_delete=models.CASCADE)
