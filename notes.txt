@@ -3,3 +3,13 @@ python manage.py makemigrations receipt_processor
 
 http://127.0.0.1:8000/receipts/process
 http://127.0.0.1:8000/receipts/<str:receipt_id>/points/
+
+
+to run:
+
+docker compose up -d
+
+on mac ARM64, you may have to run this instead:
+
+docker-compose up -d
+

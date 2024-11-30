@@ -48,27 +48,22 @@ class ReceiptView(APIView):
         numbers = sum(ch.isdigit() for ch in retailer)
         letters = sum(ch.isalpha() for ch in retailer)
         points += numbers + letters
-        print(retailer + ": " + str(points))
 
         # 50 points if the total is a round dollar amount with no cents.
         if total.is_integer():
             points += 50
-            print("50 for int price, total now:", str(points))
 
         # 25 points if the total is a multiple of 0.25.
         if total % 0.25 == 0:
             points += 25
-            print("25 points for total multi of 0.25:", str(points))
 
         # 5 points for every two items on the receipt.
         amount_item_pairs = math.floor(len(items)/2)
         points += amount_item_pairs * 5
-        print("5 points for every two items:", str(points))
 
         # 6 points if the day in the purchase date is odd.
         if day % 2 != 0:
             points += 6
-            print("6 points for odd day:", str(points))
 
         # 10 points if the time of purchase is after 2:00pm and before 4:00pm.
         two_pm = time(hour=14, minute=0, second=0, microsecond=0, tzinfo=None, fold=0)
@@ -93,14 +88,12 @@ class ReceiptView(APIView):
             trimmed_item_description = short_description.strip()
             if len(trimmed_item_description) % 3 == 0:
                 points += math.ceil(price * 0.2)
-                print("And after finding a weird item description:", str(points))
 
             ItemAssignmentToReceipt.objects.get_or_create(
                 item=item_object,
                 receipt=receipt,
             )
 
-        print("POINTS:", str(points))
         receipt.points = points
         receipt.save()
 
@@ -117,9 +110,9 @@ class ReceiptPointsView(APIView):
     """
 
     permission_classes = (AllowAny,)
-    http_method_names = ['post', 'head']
+    http_method_names = ['get', 'head']
 
-    def get(self, receipt_id):
-        receipt, _ = Receipt.objects.get(receipt=receipt_id)
+    def get(self, request, receipt_id):
+        receipt = Receipt.objects.get(id=receipt_id)
         points = receipt.points
         return Response(data={'points': points}, status=200)

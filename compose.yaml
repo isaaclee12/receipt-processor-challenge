@@ -1,0 +1,9 @@
+services:
+  web: 
+    build: 
+      context: . # name of local repository for our django app
+      dockerfile: Dockerfile
+    container_name: receipt_processor
+    ports:
+      -  "8000:8000" # Maps container's 8000 port to our machine's 8000 port
+    command: python manage.py runserver 0.0.0.0:8000 # Run the server!!!
