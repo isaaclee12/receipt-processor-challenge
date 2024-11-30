@@ -11,12 +11,9 @@ class Receipt(models.Model):
     retailer = models.CharField(max_length=30, blank=False, null=False)
     purchase_datetime = models.DateTimeField(blank=False, null=False)
     total = models.DecimalField(max_digits=20, decimal_places=2, blank=False, null=False)
+    points = models.IntegerField(default=0)
     # create a join table with foreign keys to Receipt and Item
     items = models.ManyToManyField(Item, through='ItemAssignmentToReceipt')
-
-class ReceiptPoints(models.Model):
-    receipt = models.ForeignKey(Receipt, on_delete=models.CASCADE)
-    points = models.IntegerField()
 
 class ItemAssignmentToReceipt(models.Model):
     receipt = models.ForeignKey(Receipt, on_delete=models.CASCADE)
