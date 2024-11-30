@@ -1,0 +1,5 @@
+python manage.py makemigrations receipt_processor 
+
+
+http://127.0.0.1:8000/receipts/process
+http://127.0.0.1:8000/receipts/<str:receipt_id>/points/
