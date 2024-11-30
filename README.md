@@ -1,3 +1,32 @@
+TODO:
+- Add some features (e.g. error handling)/match config for the api.yml 
+- Write tests for the api
+- Test on another machine
+- Write out this README
+- Submit
+
+MIGRATE:
+python manage.py makemigrations receipt_processor 
+python manage.py migrate receipt_processor 
+
+TEST:
+python manage.py test receipt_processor.tests
+
+http://127.0.0.1:8000/receipts/process
+http://127.0.0.1:8000/receipts/<str:receipt_id>/points/
+
+
+
+RUN:
+docker compose up -d
+
+on mac ARM64, you may have to run this instead:
+
+docker-compose up -d
+
+
+
+
 # Receipt Processor
 
 Build a webservice that fulfils the documented API. The API is described below. A formal definition is provided 

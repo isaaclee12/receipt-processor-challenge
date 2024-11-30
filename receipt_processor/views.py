@@ -1,12 +1,15 @@
-from rest_framework.decorators import api_view, permission_classes
+"""
+Views for receipt_processor
+"""
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from receipt_processor.models import Item, ItemAssignmentToReceipt, Receipt
 
-from datetime import datetime, time
+from datetime import date, time
 import json
 import math
+
 
 class ReceiptView(APIView):
     """
@@ -21,23 +24,31 @@ class ReceiptView(APIView):
     http_method_names = ['post', 'head']
 
     def post(self, request):
-        request_body = json.loads(request.body)
-        retailer = request_body.get('retailer')
-        purchase_date = request_body.get('purchaseDate')
-        purchase_time = request_body.get('purchaseTime')
-        total = request_body.get('total')
-        items = request_body.get('items')
+        try:
+            request_body = json.loads(request.body)
+            retailer = request_body['retailer']
+            purchase_date = request_body['purchaseDate']
+            purchase_time = request_body['purchaseTime']
+            total = request_body['total']
+            items = request_body['items']
+        except KeyError as e:
+            return Response(f'Request receipt data invalid, missing data for the following attribute: {e}', status=400)
+        except Exception as e:
+            return Response(f'Request receipt data invalid, threw the following exception: {e}', status=400)
 
         # Data cleaning
         year, month, day = [int(x) for x in purchase_date.split('-')]
         hour, minute = [int(x) for x in purchase_time.split(':')]
-        purchase_datetime = datetime(year=year, month=month, day=day, hour=hour, minute=minute)
+
+        purchase_date = date(year=year, month=month, day=day)
+        purchase_time = time(hour=hour, minute=minute)
         total = float(total)
 
         # Create a Receipt, (or get if it already exists), extract the id.
         receipt, _ = Receipt.objects.get_or_create(
             retailer=retailer,
-            purchase_datetime=purchase_datetime,
+            purchase_date=purchase_date,
+            purchase_time=purchase_time,
             total=total,
         )
 
@@ -58,7 +69,7 @@ class ReceiptView(APIView):
             points += 25
 
         # 5 points for every two items on the receipt.
-        amount_item_pairs = math.floor(len(items)/2)
+        amount_item_pairs = math.floor(len(items) / 2)
         points += amount_item_pairs * 5
 
         # 6 points if the day in the purchase date is odd.
@@ -68,7 +79,7 @@ class ReceiptView(APIView):
         # 10 points if the time of purchase is after 2:00pm and before 4:00pm.
         two_pm = time(hour=14, minute=0, second=0, microsecond=0, tzinfo=None, fold=0)
         four_pm = time(hour=16, minute=0, second=0, microsecond=0, tzinfo=None, fold=0)
-        purchase_between_two_and_four = two_pm <= purchase_datetime.time() < four_pm
+        purchase_between_two_and_four = two_pm <= purchase_time < four_pm
         if purchase_between_two_and_four:
             points += 10
 
@@ -78,7 +89,8 @@ class ReceiptView(APIView):
             short_description = item.get('shortDescription')
             price = item.get('price')
             price = float(price)
-            item_object, _ = Item.objects.get_or_create(
+            # Note: we need a unique item object for each item to get the counts right
+            item_object = Item.objects.create(
                     short_description=short_description,
                     price=price,
                 )
@@ -89,7 +101,7 @@ class ReceiptView(APIView):
             if len(trimmed_item_description) % 3 == 0:
                 points += math.ceil(price * 0.2)
 
-            ItemAssignmentToReceipt.objects.get_or_create(
+            ItemAssignmentToReceipt.objects.create(
                 item=item_object,
                 receipt=receipt,
             )
@@ -113,6 +125,10 @@ class ReceiptPointsView(APIView):
     http_method_names = ['get', 'head']
 
     def get(self, request, receipt_id):
-        receipt = Receipt.objects.get(id=receipt_id)
+        try:
+            receipt = Receipt.objects.get(id=receipt_id)
+        except Exception as e:
+            return Response(f'Receipt could not be found for id {receipt_id}, threw the following exception: {e}', status=404)
+
         points = receipt.points
         return Response(data={'points': points}, status=200)
